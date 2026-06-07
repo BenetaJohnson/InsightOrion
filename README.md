@@ -1,189 +1,150 @@
-# InsightOrion
+# 🧠 InsightOrion – Enterprise Knowledge Intelligence & Workflow Automation SaaS Platform
 
-### AI-Powered Enterprise Knowledge Intelligence, Meeting Intelligence & Workflow Automation Platform
+InsightOrion is a production-grade, multi-tenant SaaS platform that transforms organizational knowledge, meetings, documents, communications, and engineering workflows into a unified AI-powered intelligence ecosystem.
 
-InsightOrion is a production-grade multi-tenant SaaS collective memory platform. It converts organizational meetings, files, Drive uploads, and Gmail communications into searchable semantic indexes (RAG), automatically constructs professional Minutes of Meetings (MoM), tracks actions priority indicators, and coordinates UiPath business process automation runs.
+The platform combines Retrieval-Augmented Generation (RAG), workflow automation, meeting intelligence, engineering analytics, and context-aware AI assistants to help organizations capture institutional knowledge, automate repetitive processes, and improve operational efficiency.
 
----
+## 🚀 Features
 
-## 1. System Architecture
+### 📂 Enterprise Knowledge Hub
 
-```mermaid
-graph TD
-    subgraph Client [Next.js 15 Client]
-        UI["Tailwind & ShadCN UI Pages"]
-        State["Zustand & React Query Store"]
-    end
+- AI-powered enterprise search across organizational knowledge.
+- Upload and index PDFs, DOCX files, and text documents.
+- Tenant-isolated semantic knowledge repositories.
+- Natural language querying with source-aware responses.
+- Citation-backed knowledge retrieval and contextual answers.
 
-    subgraph Server [FastAPI Python Server]
-        Rtr["API Router Layer"]
-        Svc["Service Layer (RAG, Transcribing)"]
-        Repo["Repository Layer"]
-        DB["SQLite DB"]
-    end
+### 🧠 Advanced RAG Intelligence
 
-    subgraph RAG & AI Orchestration
-        Whisper["OpenAI Whisper Engine"]
-        Gemini["Google Gemini 2.5 API"]
-        FAISS["FAISS Indexes (Tenant isolated)"]
-    end
+- Semantic document chunking and vector indexing.
+- Retrieval-Augmented Generation (RAG) architecture.
+- Context-aware information retrieval.
+- Enterprise knowledge graph generation.
+- High-accuracy AI responses grounded in company data.
 
-    UI -->|HTTPS JWT Token| Rtr
-    Rtr --> Svc
-    Svc --> Repo
-    Repo --> DB
-    Svc --> Gemini
-    Svc --> Whisper
-    Svc --> FAISS
-```
+### 🎙️ Meeting Intelligence & MoM Automation
 
----
+- Audio meeting ingestion and processing.
+- AI-powered speech-to-text transcription.
+- Automatic Minutes of Meeting (MoM) generation.
+- Executive summaries and discussion highlights.
+- Action item extraction with ownership assignment.
+- Multi-format exports and automated distribution.
 
-## 2. Relational Database Schema
+### 📋 Smart Task & Workflow Management
 
-SQLite schema mappings for multi-tenant isolation:
+- Interactive Kanban board management.
+- AI-assisted task prioritization.
+- Risk assessment and delay prediction.
+- Progress tracking and workflow visibility.
+- Team collaboration and task discussions.
 
-```mermaid
-erDiagram
-    TENANTS ||--o{ USERS : contains
-    TENANTS ||--o{ DOCUMENTS : owns
-    TENANTS ||--o{ MEETINGS : schedules
-    TENANTS ||--o{ WORKFLOWS : triggers
-    USERS ||--o{ ACTION_ITEMS : assigned_to
-    MEETINGS ||--o{ ACTION_ITEMS : extracts
-    ACTION_ITEMS ||--o{ COMMENTS : reviews
+### 🚀 Workflow Automation & Process Intelligence
 
-    TENANTS {
-        string id PK
-        string name
-        string domain
-        string subscription_plan
-        integer storage_used
-    }
-    USERS {
-        string id PK
-        string tenant_id FK
-        string email
-        string password_hash
-        string full_name
-        string role
-        string google_refresh_token
-    }
-    DOCUMENTS {
-        string id PK
-        string tenant_id FK
-        string title
-        string file_path
-        string file_type
-        string source_type
-    }
-    MEETINGS {
-        string id PK
-        string tenant_id FK
-        string title
-        string date
-        string transcript_text
-        string mom_json
-        string status
-    }
-    ACTION_ITEMS {
-        string id PK
-        string tenant_id FK
-        string meeting_id FK
-        string title
-        string assignee_id FK
-        string priority
-        string status
-        float risk_score
-        string delay_risk
-    }
-```
+- Business workflow orchestration.
+- Automated compliance verification.
+- Process monitoring and execution tracking.
+- Intelligent workflow recommendations.
+- Enterprise automation integrations.
 
----
+### 🤖 AI Jira Copilot
 
-## 3. Core Process Sequence Flow
+- AI-assisted ticket analysis.
+- Root cause and blocker identification.
+- Automated resolution suggestions.
+- Pull request checklist generation.
+- Productivity-enhancing engineering recommendations.
 
-Sequence diagram for Meeting Upload & MoM Generation:
+### 👨‍💻 Expertise Discovery Engine
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Employee
-    participant UI as Next.js Client
-    participant API as FastAPI Router
-    participant Svc as Meeting Service
-    participant Gemini as Gemini 2.5 API
-    participant RAG as RAG Service (FAISS)
-    
-    User->>UI: Upload MP3 Audio File
-    UI->>API: POST /api/v1/meetings/upload
-    API-->>UI: Return 200 (PENDING status)
-    
-    Note over API: Start Background Task
-    
-    API->>Svc: process_uploaded_meeting()
-    Svc->>Svc: Transcribe Audio (Whisper)
-    Svc->>Gemini: Prompt dialogue to generate MoM JSON
-    Gemini-->>Svc: Returns MoM JSON (agenda, actions)
-    Svc->>RAG: Index Transcript text in FAISS per Tenant
-    Svc->>API: Update Meeting status = COMPLETED
-    
-    UI->>API: GET /api/v1/meetings/{id} (Polling)
-    API-->>UI: Returns COMPLETED status & MoM details
-```
+- Intelligent expert identification across teams.
+- Knowledge ownership mapping.
+- Skill-based resource discovery.
+- Engineering contribution analysis.
+- Automated expertise routing.
 
----
+### 💻 Engineering Intelligence Hub
 
-## 4. API Endpoints Directory
+- Git repository analysis and indexing.
+- Commit trend analytics.
+- Code contribution insights.
+- Branch health monitoring.
+- Development productivity reporting.
 
-### Authentication & Tenants
-* `POST /api/v1/auth/register`: Signup a new organization tenant + admin.
-* `POST /api/v1/auth/login`: Authenticate email and password, returns JWT token.
-* `GET /api/v1/auth/me`: Load profile user info.
-* `GET /api/v1/tenants/me`: Load current subscription storage quotas.
+### 💬 Context-Aware AI Copilot
 
-### Knowledge Hub (RAG)
-* `POST /api/v1/knowledge/upload`: Upload and index document files in FAISS.
-* `GET /api/v1/knowledge/search?q={query}`: Query workspace files (returns answer + citations list).
-* `POST /api/v1/knowledge/sync/google`: Sync Gmail emails and Google Drive.
+- Conversational enterprise assistant.
+- Organization-wide knowledge access.
+- Context-aware question answering.
+- Meeting, document, and project awareness.
+- Cross-platform information retrieval.
 
-### Meetings & Tasks
-* `POST /api/v1/meetings/upload`: Upload audio meetings.
-* `GET /api/v1/meetings/list`: Fetch processed voice records.
-* `GET /api/v1/meetings/{id}`: Load transcript segments and MoM JSON.
-* `GET /api/v1/meetings/{id}/export?format={md|docx|html}`: Stream downloadable reports.
-* `PUT /api/v1/actions/{id}/status`: Shift Kanban task status and adjust delay risk levels.
+### 📊 Analytics & Organizational Insights
 
----
+- Knowledge utilization analytics.
+- RAG query monitoring.
+- Productivity and workflow metrics.
+- Storage and usage intelligence.
+- Organization-wide performance dashboards.
 
-## 5. Deployment Guide (Docker)
+## 🛠️ Tech Stack
 
-Ensure docker is installed. Create a `.env` file in the root directory:
+### Frontend
 
-```env
-GEMINI_API_KEY=your-gemini-api-key-here
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
 
-### Launch Services
-Build and start the application containers:
+### Backend
 
-```bash
-docker-compose up --build
-```
+- FastAPI
+- Python
+- REST APIs
+- Multi-Tenant Architecture
 
-* **Frontend Client Portal**: `http://localhost:3000`
-* **FastAPI Backend Server**: `http://localhost:8000`
-* **Interactive API Swagger Docs**: `http://localhost:8000/docs`
+### AI & Intelligence Layer
 
----
+- Google Gemini
+- Retrieval-Augmented Generation (RAG)
+- FAISS Vector Database
+- Semantic Search
+- Natural Language Processing (NLP)
+- Speech-to-Text Processing
+- Generative AI Workflows
 
-## 6. Testing Guide
+### Integrations
 
-Run Python tests on the backend models, authentication router, and RAG service:
+- Google Drive
+- Gmail
+- Jira
+- Git Repositories
+- UiPath
+- Enterprise Collaboration Tools
 
-```bash
-cd backend
-python -m pytest -v
-```
+### Infrastructure
+
+- Docker
+- PostgreSQL / SQLite
+- Vector Databases
+- Role-Based Access Control (RBAC)
+- Multi-Tenant SaaS Architecture
+
+## 📂 Platform Modules
+
+- Enterprise Search Hub
+- Meeting Intelligence Engine
+- AI MoM Generator
+- Workflow Automation Center
+- Jira Copilot
+- Engineering Intelligence Hub
+- Expert Finder
+- Context-Aware AI Assistant
+- Analytics Dashboard
+- Tenant Administration Portal
+
+## 🎯 Project Vision
+
+InsightOrion aims to become the central intelligence layer for modern organizations by transforming fragmented documents, meetings, communications, and workflows into a searchable, actionable, and continuously evolving knowledge ecosystem.
+
+By combining enterprise-grade RAG, AI copilots, workflow automation, meeting intelligence, and engineering analytics, the platform enables teams to work smarter, preserve institutional knowledge, and accelerate decision-making at scale.
